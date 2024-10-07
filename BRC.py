@@ -50,6 +50,27 @@ def process_chunk(metadata):
     # [get_metrics(record.split(b";")) for record in data.split(b"\n")]
     return metrics
 
+def process_chunk3(metadata):
+    start = metadata[1]
+    metrics = {}
+    f = open(metadata[0], 'rb')
+    fm = mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_READ)
+    fm.seek(metadata[1])
+    data = fm.read(metadata[2] - metadata[1] - 1)
+    fm.close()
+    f.close()
+    for record in data.split(b"\n"):
+        rec = record.split(b";")
+        city, temp_f = rec[0], float(rec[1])
+        current_val = metrics.get(city)
+        if current_val is not None:
+            metrics[city].append(temp_f)
+        else:
+            metrics[city] = [temp_f]
+    
+    condensed_metrics = {key:(min(item), max(item), sum(item), len(item)) for key, item in metrics.items()}
+    return condensed_metrics
+    
 def combine_dicts(list_dicts):
     master_dict = {}
     for dict in list_dicts:
