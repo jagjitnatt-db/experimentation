@@ -70,7 +70,23 @@ def process_chunk3(metadata):
     
     condensed_metrics = {key:(min(item), max(item), sum(item), len(item)) for key, item in metrics.items()}
     return condensed_metrics
-    
+
+
+def process_chunk4(metadata):
+    metrics = {}
+    f = open(metadata[0], 'rb')
+    fm = mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_READ)
+    fm.seek(metadata[1])
+    data = fm.read(metadata[2] - metadata[1] - 1)
+    fm.close()
+    f.close()
+    for record in data.split(b"\n"):
+        rec = tuple(record.split(b";"))
+        metrics.setdefault(rec[0], []).append(float(rec[1]))
+    condensed_metrics = {key:(min(item), max(item), sum(item), len(item)) for key, item in metrics.items()}
+    return condensed_metrics
+
+
 def combine_dicts(list_dicts):
     master_dict = {}
     for dict in list_dicts:
